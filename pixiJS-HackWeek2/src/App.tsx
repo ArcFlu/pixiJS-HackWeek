@@ -1,11 +1,12 @@
-import { Application, extend, useApplication, useTick } from '@pixi/react';
-import { Assets, Container, Sprite, Texture } from 'pixi.js';
+import { Application, extend, useApplication } from '@pixi/react';
+import { AnimatedSprite, Assets, Container, Sprite, Texture } from 'pixi.js';
 import { useEffect, useRef, useState } from 'react';
 
 // extend tells @pixi/react what Pixi.js components are available
 extend({
   Container,
   Sprite,
+  AnimatedSprite,
 });
 
 const BunnySprite = () => {
@@ -70,10 +71,48 @@ const BunnySprite = () => {
   );
 };
 
+const SlimeSprite = () => {
+  const { app } = useApplication();
+  const [textures, setTextures] = useState([Texture.EMPTY]);
+
+  useEffect(() => {
+    const loadAnimation = async () => {
+      try {
+        const spritesheet = await Assets.load(
+          '/slime/forwardSlimeAnimation.json'
+        );
+
+        // This is typically how you extract an animation called "walk" or similar.
+        // Check your .json for available animation names if unsure.
+        const frames =
+          spritesheet.animations['Slime1_Idle_full'] ??
+          Object.values(spritesheet.textures);
+
+        setTextures(frames);
+      } catch (err) {
+        console.error('Error loading animation:', err);
+      }
+    };
+
+    loadAnimation();
+  }, []);
+
+  return (
+    <pixiAnimatedSprite
+      textures={textures}
+      animationSpeed={1}
+      anchor={0.5}
+      x={app.screen.width / 2}
+      y={app.screen.height / 2}
+    />
+  );
+};
+
 export default function App() {
   return (
     <Application background={'#1099bb'} resizeTo={window}>
       <BunnySprite />
+      <SlimeSprite />
     </Application>
   );
 }
